@@ -12,24 +12,50 @@ import Typography from "@mui/material/Typography";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 type FormValues = {
   type: string;
   register: string;
 };
 
+type Service = {
+  id: number;
+  // Adicione outros campos relevantes de serviços aqui
+};
+
+type UserData = {
+  id: number;
+  name: string;
+  last_name: string;
+  email: string;
+  services: Service[];
+};
+
 export function Home() {
   const navigate = useNavigate();
-  const userId = localStorage.getItem("userId"); // Certifique-se de que o ID do usuário está armazenado no localStorage
-
+  const userId = localStorage.getItem("userId");
   const [serviceId, setServiceId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>();
+
+  const fetchServices = useCallback(async () => {
+    try {
+      const response = await axios.get(`http://localhost:3001/user/${userId}`);
+      setUserData(response.data.user);
+    } catch (error) {
+      toast.error("Houve um erro ao buscar os atendimentos!");
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
@@ -43,6 +69,7 @@ export function Home() {
       );
       setServiceId(response.data.service.id);
       toast.success("Atendimento enviado com sucesso!");
+      fetchServices(); // Re-fetch services after form submission
     } catch (error) {
       toast.error("Houve um erro ao enviar o atendimento!");
     }
@@ -60,14 +87,34 @@ export function Home() {
         sx={{
           backgroundImage: "url(https://source.unsplash.com/random)",
           backgroundRepeat: "no-repeat",
-          backgroundColor: (t) =>
-            t.palette.mode === "light"
-              ? t.palette.grey[50]
-              : t.palette.grey[900],
           backgroundSize: "cover",
           backgroundPosition: "center",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-start",
+          alignItems: "center",
+          padding: 4,
         }}
-      />
+      >
+        {userData && (
+          <>
+            <Typography
+              variant="h4"
+              component="h2"
+              sx={{ fontWeight: "bold", textAlign: "center", mt: 2 }}
+            >
+              {userData.name} {userData.last_name}
+            </Typography>
+            <Typography
+              variant="h6"
+              component="h3"
+              sx={{ fontWeight: "bold", textAlign: "center", mt: 2 }}
+            >
+              Número de atendimentos: {userData.services?.length || 0}
+            </Typography>
+          </>
+        )}
+      </Grid>
       <Grid
         item
         xs={12}
