@@ -14,14 +14,24 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Typography,
   Paper,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 
 interface Service {
   id: number;
   user: string;
   date: string;
-  rating: string[];
+  rating: number;
+}
+
+interface User {
+  id: string;
+  name: string;
 }
 
 interface Filter {
@@ -33,6 +43,7 @@ interface Filter {
 export function Backlog() {
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [filter, setFilter] = useState<Filter>({
     user: "",
     startDate: "",
@@ -49,16 +60,31 @@ export function Backlog() {
     }
   }, []);
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      const response = await axios.get<User[]>("/get-users");
+      setUsers(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchServices();
-  }, [fetchServices]);
+    fetchUsers();
+  }, [fetchServices, fetchUsers]);
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilterChange = (
+    e: React.ChangeEvent<{ name?: string; value: unknown }>
+  ) => {
     const { name, value } = e.target;
-    setFilter((prevFilter) => ({ ...prevFilter, [name]: value }));
+    setFilter((prevFilter) => ({
+      ...prevFilter,
+      [name as string]: value as string,
+    }));
   };
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = services;
 
     if (filter.user) {
@@ -80,25 +106,41 @@ export function Backlog() {
     }
 
     setFilteredServices(filtered);
-  };
+  }, [filter, services]);
 
   useEffect(() => {
     applyFilters();
-  }, [filter]);
+  }, [filter, applyFilters]);
 
   return (
     <Container>
+      <Typography variant="h4" gutterBottom>
+        Backlog
+      </Typography>
+
       <Box component={Paper} padding={2} mb={4}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
-            <TextField
-              fullWidth
-              label="Usuário"
-              name="user"
-              value={filter.user}
-              onChange={handleFilterChange}
-              variant="outlined"
-            />
+            <FormControl fullWidth variant="outlined">
+              <InputLabel id="user-select-label">Usuário</InputLabel>
+              <Select
+                labelId="user-select-label"
+                id="user-select"
+                name="user"
+                value={filter.user}
+                onChange={handleFilterChange}
+                label="Usuário"
+              >
+                <MenuItem value="">
+                  <em>Nenhum</em>
+                </MenuItem>
+                {users.map((user) => (
+                  <MenuItem key={user.id} value={user.name}>
+                    {user.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={4}>
             <TextField
@@ -138,7 +180,7 @@ export function Backlog() {
             <TableRow>
               <TableCell>Usuário</TableCell>
               <TableCell>Data</TableCell>
-              <TableCell>Avaliação</TableCell>
+              <TableCell>Rating</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
