@@ -4,6 +4,7 @@ import { Login } from "../pages/login";
 import { ProtectedRouter } from "./privateRouter";
 import { Signup } from "../pages/signup";
 import { Home } from "../pages/home";
+import { Backlog } from "../pages/backlog";
 
 export const router = createBrowserRouter([
   {
@@ -21,7 +22,12 @@ export const router = createBrowserRouter([
   },
   {
     path: "/home",
-    element: <ProtectedRouter />,
+    element: <ProtectedRouter route="home" />,
     children: [{ path: "", element: <Home /> }],
+  },
+  {
+    path: "/backlog",
+    element: <ProtectedRouter route="backlog" />,
+    children: [{ path: "", element: <Backlog /> }],
   },
 ]);

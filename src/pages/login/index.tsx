@@ -34,11 +34,19 @@ export function Login() {
         email: data.email,
         password: data.password,
       });
+      console.log(response.data);
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId", response.data.userId);
+      localStorage.setItem("adm", JSON.stringify(response.data.userType));
+
       toast.success("Login realizado com sucesso!");
+
       setTimeout(() => {
-        navigate("/home");
+        if (response.data.adm) {
+          navigate("/backlog");
+        } else {
+          navigate("/home");
+        }
       }, 2000);
     } catch (error) {
       toast.error("Houve um erro ao realizar o login!");
