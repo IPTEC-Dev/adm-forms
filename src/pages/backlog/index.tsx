@@ -102,6 +102,7 @@ export function Backlog() {
 
   useEffect(() => {
     applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAttendant, startDate, endDate, services]);
 
   const applyFilters = () => {
@@ -128,7 +129,7 @@ export function Backlog() {
     setFilteredServices(filtered);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -209,7 +210,6 @@ export function Backlog() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
                 <TableCell>Tipo</TableCell>
                 <TableCell>Registro</TableCell>
                 <TableCell>Data de Criação</TableCell>
@@ -221,7 +221,6 @@ export function Backlog() {
               {paginatedServices.length > 0 ? (
                 paginatedServices.map((service) => (
                   <TableRow key={service.id}>
-                    <TableCell>{service.id}</TableCell>
                     <TableCell>{service.type}</TableCell>
                     <TableCell>{service.register}</TableCell>
                     <TableCell>
