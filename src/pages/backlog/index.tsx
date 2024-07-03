@@ -21,6 +21,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Typography,
+  TablePagination,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
@@ -40,6 +41,12 @@ interface Rating {
   questions: Question[];
 }
 
+interface Attendant {
+  id: number;
+  name: string;
+  last_name: string;
+}
+
 interface Service {
   created_at: string;
   id: number;
@@ -47,12 +54,20 @@ interface Service {
   type: string;
   register: string;
   rating: Rating;
-  attendant: User;
+  attendant: Attendant;
 }
 
 export function Backlog() {
   const [users, setUsers] = useState<User[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const [selectedAttendant, setSelectedAttendant] = useState<number | string>(
+    ""
+  );
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -85,6 +100,50 @@ export function Backlog() {
     fetchServices();
   }, [fetchUsers, fetchServices]);
 
+  useEffect(() => {
+    applyFilters();
+  }, [selectedAttendant, startDate, endDate, services]);
+
+  const applyFilters = () => {
+    let filtered = services;
+
+    if (selectedAttendant) {
+      filtered = filtered.filter(
+        (service) => service.id_attendant === selectedAttendant
+      );
+    }
+
+    if (startDate) {
+      filtered = filtered.filter(
+        (service) => new Date(service.created_at) >= new Date(startDate)
+      );
+    }
+
+    if (endDate) {
+      filtered = filtered.filter(
+        (service) => new Date(service.created_at) <= new Date(endDate)
+      );
+    }
+
+    setFilteredServices(filtered);
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const paginatedServices = filteredServices.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <Container>
       <Box component={Paper} padding={2} mb={4}>
@@ -97,6 +156,8 @@ export function Backlog() {
                 id="user-select"
                 name="user"
                 label="Usuário"
+                value={selectedAttendant}
+                onChange={(e) => setSelectedAttendant(e.target.value as number)}
               >
                 {Array.isArray(users) && users.length > 0 ? (
                   users.map((user) => (
@@ -120,6 +181,8 @@ export function Backlog() {
               type="date"
               variant="outlined"
               InputLabelProps={{ shrink: true }}
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
             />
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -130,11 +193,13 @@ export function Backlog() {
               type="date"
               variant="outlined"
               InputLabelProps={{ shrink: true }}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
             />
           </Grid>
         </Grid>
         <Box mt={2}>
-          <Button variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={applyFilters}>
             Aplicar Filtros
           </Button>
         </Box>
@@ -153,8 +218,8 @@ export function Backlog() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {services.length > 0 ? (
-                services.map((service) => (
+              {paginatedServices.length > 0 ? (
+                paginatedServices.map((service) => (
                   <TableRow key={service.id}>
                     <TableCell>{service.id}</TableCell>
                     <TableCell>{service.type}</TableCell>
@@ -163,7 +228,9 @@ export function Backlog() {
                       {new Date(service.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      {service.attendant.name} {service.attendant.last_name}
+                      {service.attendant
+                        ? `${service.attendant.name} ${service.attendant.last_name}`
+                        : "No Attendant"}
                     </TableCell>
                     <TableCell>
                       {service.rating &&
@@ -174,18 +241,17 @@ export function Backlog() {
                             aria-controls="panel1a-content"
                             id="panel1a-header"
                           >
-                            <Typography>Avaliações</Typography>
+                            <Typography>Ver Avaliações</Typography>
                           </AccordionSummary>
                           <AccordionDetails>
                             <ul>
                               {service.rating.questions.map(
                                 (question, index) => (
                                   <li key={index}>
-                                    <strong>Perguntas:</strong>{" "}
+                                    <strong>Question:</strong>{" "}
                                     {question.question}
                                     <br />
-                                    <strong>Respostas:</strong>{" "}
-                                    {question.answer}
+                                    <strong>Answer:</strong> {question.answer}
                                   </li>
                                 )
                               )}
@@ -207,6 +273,15 @@ export function Backlog() {
               )}
             </TableBody>
           </Table>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredServices.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
         </TableContainer>
       </Box>
     </Container>
