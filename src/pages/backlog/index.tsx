@@ -1,4 +1,3 @@
-// src/pages/backlog.tsx
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -18,7 +17,12 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 interface User {
   id: number;
@@ -43,6 +47,7 @@ interface Service {
   type: string;
   register: string;
   rating: Rating;
+  attendant: User;
 }
 
 export function Backlog() {
@@ -79,8 +84,6 @@ export function Backlog() {
     fetchUsers();
     fetchServices();
   }, [fetchUsers, fetchServices]);
-
-  console.log(services);
 
   return (
     <Container>
@@ -159,19 +162,36 @@ export function Backlog() {
                     <TableCell>
                       {new Date(service.created_at).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{service.id_attendant}</TableCell>
+                    <TableCell>
+                      {service.attendant.name} {service.attendant.last_name}
+                    </TableCell>
                     <TableCell>
                       {service.rating &&
                       Array.isArray(service.rating.questions) ? (
-                        <ul>
-                          {service.rating.questions.map((question, index) => (
-                            <li key={index}>
-                              <strong>Pergunta:</strong> {question.question}
-                              <br />
-                              <strong>Resposta:</strong> {question.answer}
-                            </li>
-                          ))}
-                        </ul>
+                        <Accordion>
+                          <AccordionSummary
+                            expandIcon={<ExpandMoreIcon />}
+                            aria-controls="panel1a-content"
+                            id="panel1a-header"
+                          >
+                            <Typography>Avaliações</Typography>
+                          </AccordionSummary>
+                          <AccordionDetails>
+                            <ul>
+                              {service.rating.questions.map(
+                                (question, index) => (
+                                  <li key={index}>
+                                    <strong>Perguntas:</strong>{" "}
+                                    {question.question}
+                                    <br />
+                                    <strong>Respostas:</strong>{" "}
+                                    {question.answer}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </AccordionDetails>
+                        </Accordion>
                       ) : (
                         "No Ratings"
                       )}
@@ -180,7 +200,7 @@ export function Backlog() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={6} align="center">
                     Nenhum serviço encontrado
                   </TableCell>
                 </TableRow>
