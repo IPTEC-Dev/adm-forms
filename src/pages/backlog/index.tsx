@@ -12,6 +12,12 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  TableContainer,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 
 interface User {
@@ -20,8 +26,28 @@ interface User {
   last_name: string;
 }
 
+interface Question {
+  question: string;
+  answer: string;
+}
+
+interface Rating {
+  id: number;
+  questions: Question[];
+}
+
+interface Service {
+  created_at: string;
+  id: number;
+  id_attendant: number;
+  type: string;
+  register: string;
+  rating: Rating;
+}
+
 export function Backlog() {
   const [users, setUsers] = useState<User[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -31,13 +57,30 @@ export function Backlog() {
       setUsers(Array.isArray(response.data.users) ? response.data.users : []);
     } catch (error) {
       console.error("Error fetching users:", error);
-      setUsers([]); // Handle error by setting users to an empty array
+      setUsers([]);
+    }
+  }, []);
+
+  const fetchServices = useCallback(async () => {
+    try {
+      const response = await axios.get<{ services: Service[] }>(
+        "http://localhost:3001/services"
+      );
+      setServices(
+        Array.isArray(response.data.services) ? response.data.services : []
+      );
+    } catch (error) {
+      console.error("Error fetching services:", error);
+      setServices([]);
     }
   }, []);
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+    fetchServices();
+  }, [fetchUsers, fetchServices]);
+
+  console.log(services);
 
   return (
     <Container>
@@ -92,6 +135,59 @@ export function Backlog() {
             Aplicar Filtros
           </Button>
         </Box>
+      </Box>
+      <Box component={Paper} padding={2} mb={4}>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Tipo</TableCell>
+                <TableCell>Registro</TableCell>
+                <TableCell>Data de Criação</TableCell>
+                <TableCell>Atendente</TableCell>
+                <TableCell>Avaliações</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {services.length > 0 ? (
+                services.map((service) => (
+                  <TableRow key={service.id}>
+                    <TableCell>{service.id}</TableCell>
+                    <TableCell>{service.type}</TableCell>
+                    <TableCell>{service.register}</TableCell>
+                    <TableCell>
+                      {new Date(service.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>{service.id_attendant}</TableCell>
+                    <TableCell>
+                      {service.rating &&
+                      Array.isArray(service.rating.questions) ? (
+                        <ul>
+                          {service.rating.questions.map((question, index) => (
+                            <li key={index}>
+                              <strong>Pergunta:</strong> {question.question}
+                              <br />
+                              <strong>Resposta:</strong> {question.answer}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        "No Ratings"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    Nenhum serviço encontrado
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
     </Container>
   );
