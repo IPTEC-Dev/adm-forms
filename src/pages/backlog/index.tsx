@@ -24,6 +24,7 @@ import {
   TablePagination,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import jsPDF from "jspdf";
 
 interface User {
   id: number;
@@ -145,6 +146,50 @@ export function Backlog() {
     page * rowsPerPage + rowsPerPage
   );
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Serviços Filtrados", 20, 10);
+
+    filteredServices.forEach((service, index) => {
+      const yPosition = 20 + index * 10;
+      doc.text(`Tipo: ${service.type}`, 20, yPosition);
+      doc.text(`Registro: ${service.register}`, 20, yPosition + 5);
+      doc.text(
+        `Data de Criação: ${new Date(service.created_at).toLocaleDateString()}`,
+        20,
+        yPosition + 10
+      );
+      doc.text(
+        `Atendente: ${
+          service.attendant
+            ? `${service.attendant.name} ${service.attendant.last_name}`
+            : "No Attendant"
+        }`,
+        20,
+        yPosition + 15
+      );
+
+      if (service.rating && Array.isArray(service.rating.questions)) {
+        service.rating.questions.forEach((question, qIndex) => {
+          doc.text(
+            `Question: ${question.question}`,
+            20,
+            yPosition + 20 + qIndex * 10
+          );
+          doc.text(
+            `Answer: ${question.answer}`,
+            20,
+            yPosition + 25 + qIndex * 10
+          );
+        });
+      } else {
+        doc.text("No Ratings", 20, yPosition + 20);
+      }
+    });
+
+    doc.save(`atendimentos-${startDate}-${endDate}.pdf`);
+  };
+
   return (
     <Container>
       <Box component={Paper} padding={2} mb={4}>
@@ -200,8 +245,13 @@ export function Backlog() {
           </Grid>
         </Grid>
         <Box mt={2}>
-          <Button variant="contained" color="primary" onClick={applyFilters}>
-            Aplicar Filtros
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={exportToPDF}
+            style={{ marginLeft: "10px" }}
+          >
+            Exportar para PDF
           </Button>
         </Box>
       </Box>
