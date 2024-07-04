@@ -25,6 +25,7 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 interface User {
   id: number;
@@ -148,46 +149,46 @@ export function Backlog() {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    doc.text("Serviços Filtrados", 20, 10);
 
-    filteredServices.forEach((service, index) => {
-      const yPosition = 20 + index * 10;
-      doc.text(`Tipo: ${service.type}`, 20, yPosition);
-      doc.text(`Registro: ${service.register}`, 20, yPosition + 5);
-      doc.text(
-        `Data de Criação: ${new Date(service.created_at).toLocaleDateString()}`,
-        20,
-        yPosition + 10
-      );
-      doc.text(
-        `Atendente: ${
-          service.attendant
-            ? `${service.attendant.name} ${service.attendant.last_name}`
-            : "No Attendant"
-        }`,
-        20,
-        yPosition + 15
-      );
+    const tableColumn = [
+      "Tipo",
+      "Registro",
+      "Data de Criação",
+      "Atendente",
+      "Avaliações",
+    ];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tableRows: any[] = [];
 
-      if (service.rating && Array.isArray(service.rating.questions)) {
-        service.rating.questions.forEach((question, qIndex) => {
-          doc.text(
-            `Question: ${question.question}`,
-            20,
-            yPosition + 20 + qIndex * 10
-          );
-          doc.text(
-            `Answer: ${question.answer}`,
-            20,
-            yPosition + 25 + qIndex * 10
-          );
-        });
-      } else {
-        doc.text("No Ratings", 20, yPosition + 20);
-      }
+    filteredServices.forEach((service) => {
+      const serviceData = [
+        service.type,
+        service.register,
+        new Date(service.created_at).toLocaleDateString(),
+        service.attendant
+          ? `${service.attendant.name} ${service.attendant.last_name}`
+          : "No Attendant",
+        service.rating && Array.isArray(service.rating.questions)
+          ? service.rating.questions
+              .map((q) => `Q: ${q.question} A: ${q.answer}`)
+              .join("\n")
+          : "No Ratings",
+      ];
+      tableRows.push(serviceData);
     });
 
-    doc.save(`atendimentos-${startDate}-${endDate}.pdf`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (doc as any).autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+      theme: "grid",
+      headStyles: { fillColor: [0, 0, 0] },
+      margin: { top: 10 },
+      styles: { overflow: "linebreak" },
+    });
+
+    doc.save("filteredServices.pdf");
   };
 
   return (
@@ -297,10 +298,11 @@ export function Backlog() {
                               {service.rating.questions.map(
                                 (question, index) => (
                                   <li key={index}>
-                                    <strong>Question:</strong>{" "}
+                                    <strong>Perguntas:</strong>{" "}
                                     {question.question}
                                     <br />
-                                    <strong>Answer:</strong> {question.answer}
+                                    <strong>Respostas:</strong>{" "}
+                                    {question.answer}
                                   </li>
                                 )
                               )}
