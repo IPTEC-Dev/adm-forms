@@ -82,7 +82,7 @@ export function Rating() {
     };
 
     try {
-      await axios.post("http://localhost:3001/create-rating", requestData);
+      await axios.post("http://172.20.3.79:3000/create-rating", requestData);
       toast.success("Pesquisa enviada com sucesso!");
       setSubmitted(true);
     } catch (error) {

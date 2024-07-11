@@ -46,7 +46,9 @@ export function Home() {
 
   const fetchServices = useCallback(async () => {
     try {
-      const response = await axios.get(`http://localhost:3001/user/${userId}`);
+      const response = await axios.get(
+        `http://172.20.3.79:3000/user/${userId}`
+      );
       setUserData(response.data.user);
     } catch (error) {
       toast.error("Houve um erro ao buscar os atendimentos!");
@@ -60,7 +62,7 @@ export function Home() {
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
       const response = await axios.post(
-        "http://localhost:3001/create-service",
+        "http://172.20.3.79:3000/create-service",
         {
           type: data.type,
           register: data.register,

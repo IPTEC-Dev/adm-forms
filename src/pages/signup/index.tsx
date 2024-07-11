@@ -35,7 +35,7 @@ export function Signup() {
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
-      const response = await axios.post("http://localhost:3001/signup", {
+      const response = await axios.post("http://172.20.3.79:3000/signup", {
         name: data.name,
         last_name: data.last_name,
         email: data.email,

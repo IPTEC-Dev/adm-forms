@@ -74,7 +74,7 @@ export function Backlog() {
   const fetchUsers = useCallback(async () => {
     try {
       const response = await axios.get<{ users: User[] }>(
-        "http://localhost:3001/users"
+        "http://172.20.3.79:3000/users"
       );
       setUsers(Array.isArray(response.data.users) ? response.data.users : []);
     } catch (error) {
@@ -86,7 +86,7 @@ export function Backlog() {
   const fetchServices = useCallback(async () => {
     try {
       const response = await axios.get<{ services: Service[] }>(
-        "http://localhost:3001/services"
+        "http://172.20.3.79:3000/services"
       );
       setServices(
         Array.isArray(response.data.services) ? response.data.services : []
