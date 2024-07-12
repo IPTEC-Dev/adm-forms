@@ -8,7 +8,6 @@ import {
   FormLabel,
   RadioGroup,
   Radio,
-  TextField,
 } from "@mui/material";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { z } from "zod";
@@ -16,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useParams } from "react-router-dom";
 
 const satisfactionOptions = [
   { value: "muito_satisfeito", label: "Muito satisfeito" },
@@ -26,7 +26,6 @@ const satisfactionOptions = [
 ];
 
 const formSchema = z.object({
-  id_service: z.string().nonempty("ID do atendimento é obrigatório"),
   atendimento: z.enum([
     "muito_satisfeito",
     "ligeiramente_satisfeito",
@@ -60,11 +59,12 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export function Rating() {
+  const { id } = useParams<{ id: string }>();
   const [submitted, setSubmitted] = useState(false);
   const {
     control,
     handleSubmit,
-    register,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -72,7 +72,7 @@ export function Rating() {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     const requestData = {
-      id_service: Number(data.id_service),
+      id_service: Number(id),
       questions: [
         { question: "atendimento", answer: data.atendimento },
         { question: "tempo", answer: data.tempo },
@@ -127,17 +127,6 @@ export function Rating() {
                 justifyContent: "center",
               }}
             >
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="id_service"
-                label="ID do Atendimento"
-                {...register("id_service")}
-                error={!!errors.id_service}
-                helperText={errors.id_service?.message}
-                sx={{ width: "100%", maxWidth: 400 }}
-              />
               <FormControl
                 component="fieldset"
                 sx={{ width: "100%", maxWidth: 400, marginBottom: 2 }}

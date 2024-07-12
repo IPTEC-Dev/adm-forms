@@ -17,7 +17,7 @@ export const router = createBrowserRouter([
     element: <Signup />,
   },
   {
-    path: "/rating",
+    path: "/rating/:id",
     element: <Rating />,
   },
   {
